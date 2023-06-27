@@ -1,11 +1,13 @@
-import { useLoaderData } from "react-router-dom";
-
 import styles from "./CountryList.module.css";
 import CountryItem from "./CountryItem";
 import Message from "./Message";
+import { useCities } from "../contexts/CitiesContext";
+import Spinner from "./Spinner";
+
 const CountryList = () => {
-	const cities = useLoaderData();
-	if (cities.length === 0) {
+	const { cities, isLoading } = useCities();
+
+	if (cities.length === 0 && !isLoading) {
 		return <Message message="Click on the map to add new cities" />;
 	}
 
@@ -17,7 +19,9 @@ const CountryList = () => {
 		return ans;
 	}, []);
 
-	return (
+	return isLoading ? (
+		<Spinner />
+	) : (
 		<ul className={styles.countryList}>
 			{countries.map((country) => (
 				<CountryItem country={country} key={country.country} />

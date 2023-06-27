@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import ReactDOM from "react-dom/client";
 import {
 	Navigate,
@@ -7,19 +7,34 @@ import {
 } from "react-router-dom";
 
 import "./index.css";
-import Product from "./pages/Product";
-import Pricing from "./pages/Pricing";
-import Homepage from "./pages/Homepage";
-import Login from "./pages/Login";
-import AppLayout from "./pages/AppLayout";
-import Error from "./pages/Error";
+
+import { CitiesProvider } from "./contexts/CitiesContext";
+import { FakeAuthProvider } from "./contexts/FakeAuthContext";
+
+// import Product from "./pages/Product";
+// import Pricing from "./pages/Pricing";
+// import Homepage from "./pages/Homepage";
+// import Login from "./pages/Login";
+// import AppLayout from "./pages/AppLayout";
+// import Error from "./pages/Error";
+// import ProtectedRoute from "./pages/ProtectedRoute";
+
+const Homepage = lazy(() => import("./pages/Homepage"));
+const Product = lazy(() => import("./pages/Product"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Login = lazy(() => import("./pages/Login"));
+const AppLayout = lazy(() => import("./pages/AppLayout"));
+const Error = lazy(() => import("./pages/Error"));
+const ProtectedRoute = lazy(() => import("./pages/ProtectedRoute"));
+
 import PageNav from "./components/PageNav";
 import Form from "./components/Form";
 import CityList from "./components/CityList";
 import App from "./App";
 import CountriesList from "./components/CountryList";
 import City from "./components/City";
-import { CitiesProvider } from "./contexts/CitiesContext";
+import SpinnerFullPage from "./components/SpinnerFullPage";
+
 const appRouter = createBrowserRouter([
 	{
 		path: "/",
@@ -61,26 +76,26 @@ const appRouter = createBrowserRouter([
 			},
 			{
 				path: "app",
-				element: <AppLayout />,
+				element: (
+					<ProtectedRoute>
+						<AppLayout />
+					</ProtectedRoute>
+				),
 				children: [
 					{
 						index: true,
-						loader: fetchCities,
 						element: <Navigate to="cities" replace />,
 					},
 					{
 						path: "cities",
-						loader: fetchCities,
 						element: <CityList />,
 					},
 					{
 						path: "cities/:id",
-						loader: fetchCities,
 						element: <City />,
 					},
 					{
 						path: "countries",
-						loader: fetchCities,
 						element: <CountriesList />,
 					},
 					{
@@ -92,26 +107,15 @@ const appRouter = createBrowserRouter([
 		],
 	},
 ]);
-// useEffect(() => {
-// 	const fetchCities = async () => {
-// 		try {
-// 			setIsLoading(true);
-// 			const resp = await fetch(`${DATA_URL}/cities`);
-// 			const data = await resp.json();
-// 			setCities(data);
-// 		} catch (err) {
-// 			console.error(err);
-// 		} finally {
-// 			setIsLoading(false);
-// 		}
-// 	};
-// 	fetchCities();
-// }, []);
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
 	<React.StrictMode>
 		<CitiesProvider>
-			<RouterProvider router={appRouter} />
+			<FakeAuthProvider>
+				<Suspense fallback={<SpinnerFullPage />}>
+					<RouterProvider router={appRouter} />
+				</Suspense>
+			</FakeAuthProvider>
 		</CitiesProvider>
 	</React.StrictMode>
 );
